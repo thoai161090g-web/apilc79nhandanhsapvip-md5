@@ -6,7 +6,7 @@ app.set("trust proxy", 1);
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
-const UPSTREAM_URL = process.env.UPSTREAM_URL;
+const UPSTREAM_URL = process.env.UPSTREAM_URL || "https://wtxmd52.tele68.com/v1/txmd5/lite-sessions?cp=R&cl=R&pf=web&at=3959701241b686f12e01bfe9c3a319b8";
 
 function normalizeResult(value) {
   const s = String(value ?? "").trim().toUpperCase();
@@ -17,7 +17,6 @@ function normalizeResult(value) {
 }
 
 async function getUpstream() {
-  if (!UPSTREAM_URL) throw new Error("Thiếu biến môi trường UPSTREAM_URL trên Render");
   const response = await fetch(UPSTREAM_URL, {
     headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0" },
     signal: AbortSignal.timeout(12000)

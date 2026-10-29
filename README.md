@@ -6,9 +6,7 @@ API wrapper dùng thuật toán trong `algorithm.mjs`, lấy lịch sử từ AP
 1. Tạo GitHub repository mới và upload đủ 4 file: `algorithm.mjs`, `server.mjs`, `package.json`, `render.yaml`.
 2. Trên Render chọn **New + → Web Service**, kết nối repository.
 3. Build command: `npm install`; Start command: `npm start`.
-4. Trong Environment thêm `UPSTREAM_URL` với URL nguồn do bạn có quyền sử dụng:
-   `https://wtxmd52.tele68.com/v1/txmd5/lite-sessions?cp=R&cl=R&pf=web&at=YOUR_TOKEN`
-   Thay `YOUR_TOKEN` bằng token hiện hành của bạn. Không đăng token công khai trong GitHub.
+4. Bản này đã đặt sẵn URL nguồn trong `server.mjs`, nên không cần tạo biến `UPSTREAM_URL`. Nếu token hết hạn, hãy sửa URL trong `server.mjs` bằng token mới. Vì URL có token, hãy để repository ở chế độ private.
 5. Sau khi deploy, mở `https://TEN-DICH-VU.onrender.com/api`.
 
 ## Lưu ý
