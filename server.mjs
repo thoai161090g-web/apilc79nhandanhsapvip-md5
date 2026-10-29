@@ -18,11 +18,29 @@ function normalizeResult(value) {
 
 async function getUpstream() {
   const response = await fetch(UPSTREAM_URL, {
-    headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0" },
-    signal: AbortSignal.timeout(12000)
+    method: "GET",
+    headers: {
+      "Accept": "application/json, text/plain, */*",
+      "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+      "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+      "Referer": "https://tele68.com/",
+      "Origin": "https://tele68.com",
+      "Cache-Control": "no-cache",
+      "Pragma": "no-cache"
+    },
+    redirect: "follow",
+    signal: AbortSignal.timeout(15000)
   });
-  if (!response.ok) throw new Error(`API nguồn trả HTTP ${response.status}`);
-  return await response.json();
+  const body = await response.text();
+  if (!response.ok) {
+    const sample = body.replace(/\s+/g, " ").slice(0, 300);
+    throw new Error(`API nguồn trả HTTP ${response.status}${sample ? `: ${sample}` : ""}`);
+  }
+  try {
+    return JSON.parse(body);
+  } catch {
+    throw new Error(`API nguồn không trả JSON hợp lệ: ${body.replace(/\s+/g, " ").slice(0, 200)}`);
+  }
 }
 
 function parseRows(payload) {
