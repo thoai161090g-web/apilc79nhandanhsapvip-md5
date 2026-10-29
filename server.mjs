@@ -1,4 +1,5 @@
 import express from "express";
+import { fetch as wreqFetch } from 'wreq-js'; // Thay thế fetch mặc định
 import { duDoanNangCao } from "./algorithm.mjs";
 
 const app = express();
@@ -17,29 +18,37 @@ function normalizeResult(value) {
 }
 
 async function getUpstream() {
-  const response = await fetch(UPSTREAM_URL, {
-    method: "GET",
-    headers: {
-      "Accept": "application/json, text/plain, */*",
-      "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-      "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
-      "Referer": "https://tele68.com/",
-      "Origin": "https://tele68.com",
-      "Cache-Control": "no-cache",
-      "Pragma": "no-cache"
-    },
-    redirect: "follow",
-    signal: AbortSignal.timeout(15000)
-  });
-  const body = await response.text();
-  if (!response.ok) {
-    const sample = body.replace(/\s+/g, " ").slice(0, 300);
-    throw new Error(`API nguồn trả HTTP ${response.status}${sample ? `: ${sample}` : ""}`);
-  }
   try {
-    return JSON.parse(body);
-  } catch {
-    throw new Error(`API nguồn không trả JSON hợp lệ: ${body.replace(/\s+/g, " ").slice(0, 200)}`);
+    // Sử dụng wreqFetch để giả lập TLS fingerprint của Chrome
+    const response = await wreqFetch(UPSTREAM_URL, {
+      method: "GET",
+      browser: 'chrome_120', 
+      headers: {
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Referer": "https://tele68.com/",
+        "Origin": "https://tele68.com",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache"
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+
+    const body = await response.text();
+    
+    if (!response.ok) {
+      const sample = body.replace(/\s+/g, " ").slice(0, 300);
+      throw new Error(`API nguồn trả HTTP ${response.status}${sample ? `: ${sample}` : ""}`);
+    }
+    
+    try {
+      return JSON.parse(body);
+    } catch {
+      throw new Error(`API nguồn không trả JSON hợp lệ: ${body.replace(/\s+/g, " ").slice(0, 200)}`);
+    }
+  } catch (error) {
+    // Bắt lỗi mạng hoặc lỗi timeout từ wreqFetch
+    throw new Error(`Lỗi kết nối đến API nguồn: ${error.message}`);
   }
 }
 
@@ -100,7 +109,6 @@ app.get("/api", async (_req, res) => {
       xuc_xac_3: r.xuc_xac_3
     })), 15);
 
-    // Dùng phiên mới nhất làm mốc. Nếu nguồn đã có phiên đang chờ, UI có thể tự đổi cách đánh số.
     const phienTruoc = latest.id;
     const phienNay = latest.id + 1;
     const confidence = Math.max(0, Math.min(95, Number(prediction.confidence) || 0));
